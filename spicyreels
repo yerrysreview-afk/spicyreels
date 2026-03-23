@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpicyReels</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+        Ubuntu, Cantarell, sans-serif;
+      background: #000;
+      color: white;
+      overflow: hidden;
+      height: 100vh;
+    }
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: linear-gradient(135deg, #ff006e, #8b00ff, #ff0054);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(255, 0, 110, 0.3);
+      transition: display 0.3s ease;
+    }
+    .header.hidden {
+      display: none;
+    }
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .chilli-logo {
+      font-size: 34px;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .site-name {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      background: linear-gradient(45deg, #fff, #ffb3d9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .video-container {
+      position: absolute;
+      top: 60px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+    .video-container.full-height {
+      top: 0;
+      height: 100vh;
+    }
+    .video-container::-webkit-scrollbar {
+      display: none;
+    }
+    .video-wrapper {
+      position: relative;
+      width: 100%;
+      height: calc(100vh - 60px);
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+    }
+    .video-wrapper.full-height {
+      height: 100vh;
+    }
+    .video-player {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border: none;
+    }
+    .video-loader {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 50px;
+      height: 50px;
+      margin-left: -25px;
+      margin-top: -25px;
+      border: 5px solid rgba(255, 255, 255, 0.2);
+      border-top-color: #ff006e;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      z-index: 11;
+      display: none;
+    }
+    .loader-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, 35px);
+      color: #ff006e;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      z-index: 11;
+      display: none;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+      white-space: nowrap;
+      animation: pulse 1s ease-in-out infinite;
+    }
+    .video-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1a0033, #330033, #4d0052);
+      color: #ff6ec7;
+      font-size: 24px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+    }
+    .video-placeholder video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+    .video-placeholder .title-overlay,
+    .video-placeholder .tap-to-play {
+      position: relative;
+      z-index: 2;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+    }
+    .tap-to-play {
+      font-size: 18px;
+      opacity: 0.8;
+      animation: fadeIn 1s ease-in-out infinite alternate;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0.5; }
+      to { opacity: 1; }
+    }
+    .video-info {
+      position: absolute;
+      bottom: 80px;
+      left: 20px;
+      right: 80px;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+      z-index: 10;
+    }
+    .video-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .video-description {
+      font-size: 16px;
+      color: #ffb3d9;
+    }
+    .side-actions {
+      position: absolute;
+      right: 15px;
+      bottom: 100px;
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+      z-index: 10;
+    }
+    .action-btn {
+      background: rgba(0, 0, 0, 0.5);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      width: 56px;
+      height: 56px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+    .action-btn:active {
+      transform: scale(0.9);
+    }
+    .action-icon {
+      font-size: 28px;
+    }
+    .action-count {
+      font-size: 12px;
+      margin-top: 2px;
+      font-weight: 600;
+    }
+    .like-btn.liked .action-icon {
+      color: #ff0054;
+    }
+    .unmute-btn {
+      position: absolute;
+      top: 20px;
+      right: 15px;
+      z-index: 10;
+      font-size: 28px;
+      cursor: pointer;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(5px);
+    }
+    .filter-btn {
+      position: absolute;
+      top: 80px;
+      right: 15px;
+      z-index: 10;
+      font-size: 24px;
+      cursor: pointer;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .scroll-indicator {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 14px;
+      animation: bounce 2s ease-in-out infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(-10px); }
+    }
+    .ad-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.95);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    .ad-content {
+      background: linear-gradient(135deg, #1a0033, #330033);
+      padding: 20px;
+      border-radius: 20px;
+      color: #ff6ec7;
+      font-size: 20px;
+      text-align: center;
+      border: 3px solid #ff006e;
+      box-shadow: 0 0 30px rgba(255, 0, 110, 0.5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 95%;
+      max-width: 450px;
+    }
+    .ad-image-link {
+      display: block;
+      margin-bottom: 15px;
+      border-radius: 15px;
+      overflow: hidden;
+      border: 2px solid #ff006e;
+    }
+    .ad-image {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .ad-timer {
+      font-size: 40px;
+      font-weight: 900;
+      color: #fff;
+      margin: 10px 0;
+    }
+    .streak-counter {
+      position: absolute;
+      right: 15px;
+      bottom: 15px;
+      background: rgba(0, 0, 0, 0.6);
+      color: #ff006e;
+      font-weight: 900;
+      font-size: 24px;
+      padding: 6px 12px;
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+      border: 2px solid rgba(255, 0, 110, 0.5);
+      z-index: 12;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+    .streak-counter .fire {
+      animation: pulse 1.5s infinite;
+    }
+    .streak-counter .count {
+      font-size: 28px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header" id="header">
+    <div class="logo-container">
+      <div class="chilli-logo">🌶️</div>
+      <div class="site-name">SPICY REELS</div>
+    </div>
+  </div>
+  <div class="video-container" id="videoContainer"></div>
+  <div class="ad-modal" id="adModal">
+    <div class="ad-content">
+      <div>click here</div>
+      <a href="" target="_blank" class="ad-image-link" id="adLink">
+        <img src="" alt="Model Ad" class="ad-image" id="adImage">
+      </a>
+      <div class="ad-timer" id="adTimer">10</div>
+      <div>seconds remaining</div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- VIDEO & AD DATA ----------
+    let videos = [
+      { title: "1", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/bridgette_n2dvzg.mp4" },
+      { title: "2", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562608/alewx_hri3cd.mp4" },
+      { title: "3", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/ava_adams_vpegsl.mp4" },
+      { title: "4", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_LANA_hq4mb6.mp4" },
+      { title: "5", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_ARIJORD_ynky7o.mp4" },
+      { title: "6", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_BRID_hqotwk.mp4" },
+      { title: "7", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_CAKE2_cfto2v.mp4" },
+      { title: "8", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_MARKU_ulrpno.mp4" },
+      { title: "9", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_NICOLETE_yiqx6g.mp4" },
+      { title: "10", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_MORIAH_f0ekh4.mp4" },
+      { title: "11", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_NIC_lsr0t9.mp4" },
+      { title: "12", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_PETA2_dngyai.mp4" },
+      { title: "13", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_JORDI_YAS_qhupg7.mp4" },
+      { title: "14", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_RACHAAEL_STAR_b9ewba.mp4" },
+      { title: "15", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_TINY_xvulxx.mp4" },
+      { title: "16", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_BRUNETE_ir9d4c.mp4" },
+      { title: "17", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_LUNAAVA_k9tmsg.mp4" },
+      { title: "18", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_SCIS_dhmyj6.mp4" },
+      { title: "19", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_ROMI2_nfro0t.mp4" },
+      { title: "20", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_ABIGAIL_pagdup.mp4" },
+      { title: "21", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_LUNA_itbuyq.mp4" },
+      { title: "22", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_ROMI1_uignjr.mp4" },
+      { title: "23", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_PETA_r7lhxg.mp4" },
+      { title: "24", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_red_head_i32ogc.mp4" },
+      { title: "25", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_LATIN_uiggip.mp4" },
+      { title: "26", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_ARIELL_b3s0ez.mp4" },
+      { title: "27", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_LELA_so2cmh.mp4" },
+      { title: "28", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_NINA_kfwa8c.mp4" },
+      { title: "29", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_CAKY_bfvipy.mp4" },
+      { title: "30", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_JMS_gq1hig.mp4" },
+      { title: "31", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_OLIVER_kqfiar.mp4" },
+      { title: "32", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_ISH_aufdju.mp4" },
+      { title: "33", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_LUNAMANUEL_julbog.mp4" },
+      { title: "34", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_XAND_zgedb2.mp4" },
+      { title: "35", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_TYLER_k9x6y1.mp4" },
+      { title: "36", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_AMES_nii3f8.mp4" },
+      { title: "37", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_AVA3_j8y51s.mp4" },
+      { title: "38", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_BB_tamsqr.mp4" },
+      { title: "39", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_CHECHIK_sxzlpm.mp4" },
+      { title: "40", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_OFFICE_mmkuap.mp4" },
+      { title: "41", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_RYAN_xb5qon.mp4" },
+      { title: "42", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_FAT_ASS_k0bq3p.mp4" },
+      { title: "43", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_NAUGHTY_o0znkg.mp4" },
+      { title: "44", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_johhny_xuqu20.mp4" },
+      { title: "45", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_shower_ptqmii.mp4" },
+      { title: "46", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_AMES_nii3f8.mp4" },
+      { title: "47", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_ROMY_kjcsvm.mp4" },
+      { title: "48", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_LUNA_STAR_a89fbu.mp4" },
+      { title: "49", desc: "", url: "httpss://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_SAVANNA_xnieh9.mp4" },
+      { title: "50", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_JOON_gv4glx.mp4" },
+      { title: "51", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_MONIQUE_vhbihn.mp4" },
+      { title: "52", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_NNB_xlunfp.mp4" },
+      { title: "53", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_JOEDI_joacgj.mp4" },
+      { title: "54", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_ZANE_wlv4ts.mp4" },
+      { title: "55", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_NNN8_qnhuum.mp4" },
+      { title: "56", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_JUAN_v6xfox.mp4" },
+      { title: "57", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_ROMI_67_es4k2p.mp4" },
+      { title: "58", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_ALVUV_b5k3zt.mp4" },
+      { title: "59", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_NICOLETE_JHN_v6mxn3.mp4" },
+      { title: "60", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_IVY_ch7u6c.mp4" },
+      { title: "61", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_bbc4_dfumht.mp4" },
+      { title: "62", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_bbc5_saoxh5.mp4" },
+      { title: "62", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_markus_rmw4p5.mp4" },
+      { title: "63", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_rrm_mzy3ry.mp4" },
+      { title: "64", desc: "", url: "httpss://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_niccy45_xlcnfn.mp4" },
+      { title: "65", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_big_assy_lf18wy.mp4" },
+      { title: "66", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_cherki_htdhhs.mp4" },
+      { title: "67", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_markus_rmw4p5.mp4" },
+      { title: "68", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_jason_crzpcr.mp4" },
+      { title: "69", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_niccyote_rw8lij.mp4" },
+      { title: "70", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_PURE_lf0ofh.mp4" },
+      { title: "71", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_LISA_N_s1ngws.mp4" },
+      { title: "72", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_CJ_om0pxu.mp4" },
+      { title: "73", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_BNM_bnokve.mp4" },
+      { title: "74", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_ARABIC_gjtlpl.mp4" },
+      { title: "75", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_REAGAX_mts4jz.mp4" },
+      { title: "76", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_LUNAMORRIS_tbrgnc.mp4" },
+      { title: "77", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_STRIPP_xza7vk.mp4" },
+      { title: "78", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_RACHEAMANUEL_qovt9f.mp4" },
+      { title: "79", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_SARAJOHN_krjzta.mp4" },
+      { title: "80", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_STYR_m60rnt.mp4" },
+      { title: "81", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_emmy_euk8me.mp4" },
+      { title: "82", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_jasonred_e1o9bo.mp4" },
+      { title: "83", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_luvemm_ztw0ky.mp4" },
+      { title: "84", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_never_uznvtm.mp4" },
+      { title: "85", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_yoggy_edhs53.mp4" },
+      { title: "86", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_cheve_tquyxg.mp4" },
+      { title: "87", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_marcy_kdmca6.mp4" },
+      { title: "88", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_angela_red_qfapze.mp4" },
+      { title: "90", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_rednyy_yuxui5.mp4" },
+      { title: "91", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_ebb_tfhrkh.mp4" },
+      { title: "92", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_frenchy_j33s8m.mp4" },
+      { title: "93", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_ebony_wfipqt.mp4" },
+      { title: "94", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_redluv_vk9hte.mp4" },
+      { title: "95", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_DUNCAN_q2nmrb.mp4" },
+      { title: "96", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_SCORPION_d1zz9u.mp4" },
+      { title: "97", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_TSOME_grt9pr.mp4" },
+      { title: "98", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_CHDUNCAN_rksyug.mp4" },
+      { title: "99", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_DUNC_bj2ecl.mp4" },
+      { title: "100", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_DUNCY_h0meyk.mp4" },
+      { title: "101", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_ROUGHY_ejyich.mp4" },
+      { title: "102", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_VYMRK_xty1nt.mp4" },
+      { title: "103", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_LENASIN_l2jozj.mp4" },
+      { title: "104", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_LENASIN2_hemvrt.mp4" },
+      { title: "105", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_EGYPTLUV_qdaigx.mp4" },
+      { title: "106", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_POWRAN2_lsbica.mp4" },
+      { title: "107", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_YASSM_xdtjas.mp4" },
+      { title: "108", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_JHYNYY_qz8zn8.mp4" },
+      { title: "109", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_POWKERIRAN_k22fh0.mp4" },
+      { title: "110", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_POW1_temv28.mp4" },
+      { title: "111", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_YASMINN_hdjm5m.mp4" },
+      { title: "112", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_JOHNNHJ_f8ruii.mp4" },
+      { title: "113", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_POW2_f80m9f.mp4" },
+      { title: "114", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_KERRR2_rtdiv8.mp4" },
+      { title: "115", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_JOHNRED_rqobfk.mp4" },
+      { title: "116", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_DUNCCY_zcgj0v.mp4" },
+      {
+        title: "<a href='https://onlyfans.com/josephine_blush' target='_blank' rel='noopener noreferrer'>onlyfans.com/josephine_blush</a>",
+        desc: "This is only a teaser. Check me out",
+        url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/onlyjosephine_tnnmsq.mp4",
+        type: "onlyfans"
+      },
+      {
+        title: "<a href='https://onlyfans.com/fitandannika' target='_blank' rel='noopener noreferrer'>onlyfans.com/fitandannika</a>",
+        desc: "This is only a teaser. Check me out",
+        url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/onlyfit_ovktp4.mp4",
+        type: "onlyfans"
+      },
+      {
+        title: "<a href='https://onlyfans.com/evie_rouges' target='_blank' rel='noopener noreferrer'>onlyfans.com/evie_rouges</a>",
+        desc: "This is only a teaser. Check me out",
+        url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/onlyevie_rmguao.mp4",
+        type: "onlyfans"
+      },
+      {
+        title: "<style>@keyframes heartbeat { 0% { transform: scale(1); } 15% { transform: scale(1.1); } 30% { transform: scale(1); } 45% { transform: scale(1.1); } 100% { transform: scale(1); } }</style><div style='display: flex; justify-content: center; width: 100%;'><a href='https://landing.hentaiprosnetwork.com/?ats=eyJhIjoxMjkxOTQyLCJjIjo2MzcyOTYxMSwibiI6MjUsInMiOjUzNywiZSI6ODk5NCwicCI6MTF9' target='_blank' rel='noopener noreferrer' style='display: inline-block; animation: heartbeat 2s infinite; color: #8b0000; font-size: 30px; text-decoration: none; background-color: #ffc0cb; padding: 10px 20px; border-radius: 8px;'>SEE MORE</a></div>",
+        desc: "",
+        url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/1208_unzonc.mp4",
+        type: "onlyfans"
+      },
+      {
+        title: "<style>@keyframes heartbeat { 0% { transform: scale(1); } 15% { transform: scale(1.1); } 30% { transform: scale(1); } 45% { transform: scale(1.1); } 100% { transform: scale(1); } }</style><div style='display: flex; justify-content: center; width: 100%;'><a href='https://landing.brazzersnetwork.com/?ats=eyJhIjoxMjkxOTQyLCJjIjo2MzcyOTYxMSwibiI6MTQsInMiOjkwLCJlIjo4ODAzLCJwIjoxMX0=' target='_blank' rel='noopener noreferrer' style='display: inline-block; animation: heartbeat 2s infinite; color: #8b0000; font-size: 30px; text-decoration: none; background-color: #ffc0cb; padding: 10px 20px; border-radius: 8px;'>SEE MORE</a></div>",
+        desc: "",
+        url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/brazzers_link_tlsryp.mp4",
+        type: "onlyfans"
+      },
+      {
+        title: "<style>@keyframes heartbeat { 0% { transform: scale(1); } 15% { transform: scale(1.1); } 30% { transform: scale(1); } 45% { transform: scale(1.1); } 100% { transform: scale(1); } }</style><div style='display: flex; justify-content: center; width: 100%;'><a href='https://t.ajrkm1.com/393047/6224/0?bo=2779,2778,2777,2776,2775&po=6533&aff_sub5=SF_006OG000004lmDN' target='_blank' rel='noopener noreferrer' style='display: inline-block; animation: heartbeat 2s infinite; color: #8b0000; font-size: 30px; text-decoration: none; background-color: #ffc0cb; padding: 10px 20px; border-radius: 8px;'>SEE MORE</a></div>",
+        desc: "",
+        url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/jerkmate_o8xrh7.mp4",
+        type: "onlyfans"
+      },
+      {
+        title: "<style>@keyframes heartbeat { 0% { transform: scale(1); } 15% { transform: scale(1.1); } 30% { transform: scale(1); } 45% { transform: scale(1.1); } 100% { transform: scale(1); } }</style><div style='display: flex; justify-content: center; width: 100%;'><a href='https://landing.brazzersnetwork.com/?ats=eyJhIjoxMjkxOTQyLCJjIjo2MzcyOTYxMSwibiI6MTQsInMiOjkwLCJlIjo4ODAzLCJwIjoxMX0=' target='_blank' rel='noopener noreferrer' style='display: inline-block; animation: heartbeat 2s infinite; color: #8b0000; font-size: 30px; text-decoration: none; background-color: #ffc0cb; padding: 10px 20px; border-radius: 8px;'>SEE MORE</a></div>",
+        desc: "",
+        url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/brazzers_ad2_qeywib.mp4",
+        type: "onlyfans"
+      },
+      {
+        title: "<style>@keyframes heartbeat { 0% { transform: scale(1); } 15% { transform: scale(1.1); } 30% { transform: scale(1); } 45% { transform: scale(1.1); } 100% { transform: scale(1); } }</style><div style='display: flex; justify-content: center; width: 100%;'><a href='https://landing.brazzersnetwork.com/?ats=eyJhIjoxMjkxOTQyLCJjIjo2MzcyOTYxMSwibiI6MTQsInMiOjkwLCJlIjo4ODAzLCJwIjoxMX0=' target='_blank' rel='noopener noreferrer' style='display: inline-block; animation: heartbeat 2s infinite; color: #8b0000; font-size: 30px; text-decoration: none; background-color: #ffc0cb; padding: 10px 20px; border-radius: 8px;'>SEE MORE</a></div>",
+        desc: "",
+        url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/brazzers_3_n5sdko.mp4",
+        type: "onlyfans"
+      },
+      {
+        title: "<style>@keyframes heartbeat { 0% { transform: scale(1); } 15% { transform: scale(1.1); } 30% { transform: scale(1); } 45% { transform: scale(1.1); } 100% { transform: scale(1); } }</style><div style='display: flex; justify-content: center; width: 100%;'><a href='https://landing.brazzersnetwork.com/?ats=eyJhIjoxMjkxOTQyLCJjIjo2MzcyOTYxMSwibiI6MTQsInMiOjkwLCJlIjo4ODAzLCJwIjoxMX0=' target='_blank' rel='noopener noreferrer' style='display: inline-block; animation: heartbeat 2s infinite; color: #8b0000; font-size: 30px; text-decoration: none; background-color: #ffc0cb; padding: 10px 20px; border-radius: 8px;'>SEE MORE</a></div>",
+        desc: "",
+        url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/brazzers4_rrxtba.mp4",
+        type: "onlyfans"
+      },
+      {
+        title: "<style>@keyframes heartbeat { 0% { transform: scale(1); } 15% { transform: scale(1.1); } 30% { transform: scale(1); } 45% { transform: scale(1.1); } 100% { transform: scale(1); } }</style><div style='display: flex; justify-content: center; width: 100%;'><a href='https://track.aftrk3.com/38df6f12-f103-452f-9386-22bba88ec8ef?ats=eyJhIjoxMjkxOTQyLCJjIjo2MzcyOTYxMSwibiI6MzcsInMiOjczNSwiZSI6MTEwNTIsInAiOjMxN30=&aff_token=DSs1LSsvPSUlKQ' target='_blank' rel='noopener noreferrer' style='display: inline-block; animation: heartbeat 2s infinite; color: #8b0000; font-size: 30px; text-decoration: none; background-color: #ffc0cb; padding: 10px 20px; border-radius: 8px;'>SEE MORE</a></div>",
+        desc: "",
+        url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/CANDY_AD1_hqdmzo.mp4",
+        type: "onlyfans"
+      },
+      {
+        title: "<style>@keyframes heartbeat { 0% { transform: scale(1); } 15% { transform: scale(1.1); } 30% { transform: scale(1); } 45% { transform: scale(1.1); } 100% { transform: scale(1); } }</style><div style='display: flex; justify-content: center; width: 100%;'><a href='https://track.aftrk3.com/38df6f12-f103-452f-9386-22bba88ec8ef?ats=eyJhIjoxMjkxOTQyLCJjIjo2MzcyOTYxMSwibiI6MzcsInMiOjczNSwiZSI6MTEwNTIsInAiOjMxN30=&aff_token=DSs1LSsvPSUlKQ' target='_blank' rel='noopener noreferrer' style='display: inline-block; animation: heartbeat 2s infinite; color: #8b0000; font-size: 30px; text-decoration: none; background-color: #ffc0cb; padding: 10px 20px; border-radius: 8px;'>SEE MORE</a></div>",
+        desc: "",
+        url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/CANDY_AD2_gsmvfv.mp4",
+        type: "onlyfans"
+      },
+    ];
+    
+    // ---------- STREAK LOGIC ----------
+    const STREAK_KEY = 'spicyReelsStreak';
+    const LAST_PLAYED_KEY = 'spicyReelsLastPlayed';
+    const THIRTY_PERCENT = 0.3;
+    const INACTIVITY_RESET_MS = 5 * 60 * 1000; // 5 minutes
+
+    let streak = parseInt(localStorage.getItem(STREAK_KEY) || '0', 10);
+    let lastPlayedTime = parseInt(localStorage.getItem(LAST_PLAYED_KEY) || '0', 10);
+    const now = Date.now();
+
+    if (now - lastPlayedTime > INACTIVITY_RESET_MS) {
+      streak = 0;
+      localStorage.setItem(STREAK_KEY, '0');
+    }
+
+    function updateStreakDisplay() {
+      document.querySelectorAll('.streak-counter .count').forEach(el => el.textContent = streak);
+    }
+
+    function incrementStreak() {
+      streak++;
+      localStorage.setItem(STREAK_KEY, streak.toString());
+      localStorage.setItem(LAST_PLAYED_KEY, Date.now().toString());
+      updateStreakDisplay();
+    }
+
+    // ---------- VIDEO ORDERING & FILTERING ----------
+    let adCountdownInterval;
+    let isHeaderPermanentlyHidden = false;
+
+    // Filter state: 'random' | 'asc' | 'desc'
+    let currentFilterMode = 'random'; 
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    let orderedVideos = [];
+    let numberedReels = [];
+    let onlyFansReels = [];
+
+    // --- Function to organize videos based on filter ---
+    function organizeVideos() {
+      // 1. Reset Arrays from source
+      numberedReels = videos.slice(0, 116).map(video => ({ ...video, type: "numbered" }));
+      onlyFansReels = videos.slice(116).map(video => ({ ...video, type: "onlyfans" }));
+      
+      // 2. Apply Sort to numbered reels
+      if (currentFilterMode === 'random') {
+        numberedReels = shuffle(numberedReels);
+      } else if (currentFilterMode === 'asc') {
+        numberedReels.sort((a, b) => parseInt(a.title) - parseInt(b.title));
+      } else if (currentFilterMode === 'desc') {
+        numberedReels.sort((a, b) => parseInt(b.title) - parseInt(a.title));
+      }
+
+      // Always shuffle ads
+      onlyFansReels = shuffle(onlyFansReels);
+
+      // 3. Interleave logic (2 videos, 1 ad)
+      orderedVideos = [];
+      let numberedIndex = 0;
+      let onlyFansIndex = 0;
+      
+      while (orderedVideos.length < videos.length) {
+        for (let i = 0; i < 2 && numberedIndex < numberedReels.length; i++) {
+          orderedVideos.push(numberedReels[numberedIndex]);
+          numberedIndex = (numberedIndex + 1) % numberedReels.length;
+        }
+        if (onlyFansIndex < onlyFansReels.length) {
+          orderedVideos.push(onlyFansReels[onlyFansIndex]);
+          onlyFansIndex = (onlyFansIndex + 1) % onlyFansReels.length;
+        }
+      }
+
+      orderedVideos.forEach(video => {
+        video.id = video.url;
+      });
+    }
+
+    // Initial organization
+    organizeVideos();
+
+    let currentIndex = 0;
+    let hasStarted = false;
+    let adShowing = false;
+    let playedSet = new Set();
+    let likes = {};
+    let userLiked = new Set();
+    let isScrolling = false;
+    let scrollTimeout;
+    let isGloballyMuted = true;
+
+    // ---------- RENDER ----------
+    function renderVideos() {
+      const container = document.getElementById("videoContainer");
+      container.innerHTML = "";
+      
+      // Determine Filter Icon based on current mode
+      let filterIcon = '🔀'; // Default Random
+      if (currentFilterMode === 'asc') filterIcon = '🔼';
+      if (currentFilterMode === 'desc') filterIcon = '🔽';
+
+      orderedVideos.forEach((video, index) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "video-wrapper";
+        wrapper.dataset.id = video.id;
+        wrapper.dataset.index = index;
+        wrapper.dataset.url = video.url;
+        
+      const placeholderContent = isHeaderPermanentlyHidden
+  ? `<video src="${video.url}" poster="${video.url}" preload="metadata" muted></video>
+     
+     <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 5rem; color: rgba(255,255,255,0.9); pointer-events: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));">
+        ▶️
+     </div>
+
+     <div class="title-overlay">${video.title}</div>
+     <div class="tap-to-play" style="line-height: 2;">
+       🔞(18+) 
+       <style>@keyframes popDonate { 0% { transform: scale(1); } 100% { transform: scale(1.1); box-shadow: 0 0 12px #ff006e; } }</style>
+       <a href="https://www.paypal.com/ncp/payment/GY5F5A2B47VS8" target="_blank" onclick="event.stopPropagation()" style="display: inline-block; background: linear-gradient(45deg, #ff006e, #8b00ff); color: white; padding: 4px 10px; border-radius: 8px; text-decoration: none; font-weight: 900; border: 1px solid rgba(255,255,255,0.8); animation: popDonate 0.8s infinite alternate; margin: 0 5px;">DONATE</a> 
+       to keep the site running
+     </div>` : `
+     <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 5rem; color: rgba(255,255,255,0.9); pointer-events: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));">
+        ▶️
+     </div>
+
+     <div class="title-overlay">${video.title}</div>
+     <div class="tap-to-play" style="line-height: 2;">
+       🔞(18+) 
+       <style>@keyframes popDonate { 0% { transform: scale(1); } 100% { transform: scale(1.1); box-shadow: 0 0 12px #ff006e; } }</style>
+       <a href="https://www.paypal.com/ncp/payment/GY5F5A2B47VS8" target="_blank" onclick="event.stopPropagation()" style="display: inline-block; background: linear-gradient(45deg, #ff006e, #8b00ff); color: white; padding: 4px 10px; border-radius: 8px; text-decoration: none; font-weight: 900; border: 1px solid rgba(255,255,255,0.8); animation: popDonate 0.8s infinite alternate; margin: 0 5px;">DONATE</a> 
+       to keep the site running
+     </div>`;
+     
+        // --- ADDED: Loader text and Filter Button HTML ---
+        wrapper.innerHTML = `
+          <div class="video-loader"></div>
+          <div class="loader-text">Loading. Just wait...</div>
+          <div class="video-placeholder">
+            ${placeholderContent}
+          </div>
+          <div class="unmute-btn">🔇</div>
+          <div class="filter-btn">${filterIcon}</div>
+          <div class="video-info">
+            <div class="video-title">${video.title}</div>
+            <div class="video-description">${video.desc}</div>
+          </div>
+          ${index === 0 ? '<div class="scroll-indicator">👇 Scroll for more </div>' : ''}
+          <div class="streak-counter"><span class="fire">🔥</span><span class="count">${streak}</span></div>
+        `;
+        container.appendChild(wrapper);
+      });
+      setupInteractions();
+      setupScrollDetection();
+      updateStreakDisplay();
+    }
+
+    // ---------- INTERACTIONS ----------
+    function setupInteractions() {
+      document.querySelectorAll('.video-wrapper').forEach(wrapper => {
+        wrapper.addEventListener('click', (e) => {
+          // Exclude filter btn from click-to-play
+          if (!e.target.closest('.action-btn') && !e.target.closest('.unmute-btn') && !e.target.closest('.filter-btn') && !isLoaded(wrapper) && !adShowing) {
+            hasStarted = true;
+            loadVideo(wrapper);
+            wrapper.querySelector('.scroll-indicator')?.remove();
+            if (parseInt(wrapper.dataset.index) === 0 && !isHeaderPermanentlyHidden) {
+              const header = document.getElementById('header');
+              header.classList.add('hidden');
+              const videoContainer = document.getElementById('videoContainer');
+              videoContainer.classList.add('full-height');
+              document.querySelectorAll('.video-wrapper').forEach(w => w.classList.add('full-height'));
+              isHeaderPermanentlyHidden = true;
+              renderVideos(); // Re-render to update layout, video stays loaded via logic
+            }
+          }
+        });
+      });
+
+      document.querySelectorAll('.unmute-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          isGloballyMuted = !isGloballyMuted;
+          const currentWrapper = btn.closest('.video-wrapper');
+          const currentVideoEl = currentWrapper.querySelector('video.video-player');
+          if (currentVideoEl) {
+            currentVideoEl.muted = isGloballyMuted;
+          }
+          
+          document.querySelectorAll('.unmute-btn').forEach(icon => {
+            icon.textContent = isGloballyMuted ? '🔇' : '🔊';
+          });
+        });
+      });
+
+      // --- Filter Button Logic ---
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          // Cycle modes: Random -> Asc -> Desc -> Random
+          if (currentFilterMode === 'random') {
+            currentFilterMode = 'asc';
+          } else if (currentFilterMode === 'asc') {
+            currentFilterMode = 'desc';
+          } else {
+            currentFilterMode = 'random';
+          }
+
+          // Re-organize
+          organizeVideos();
+          // Reset index
+          currentIndex = 0;
+          playedSet.clear(); // Clear played history to reset ad logic if needed
+          // Re-render
+          renderVideos();
+        });
+      });
+    }
+
+    function setupScrollDetection() {
+      const container = document.getElementById('videoContainer');
+      container.addEventListener('scroll', () => {
+        isScrolling = true;
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+          isScrolling = false;
+          handleScrollEnd();
+        }, 150);
+      });
+    }
+
+    function handleScrollEnd() {
+      const container = document.getElementById('videoContainer');
+      const wrappers = document.querySelectorAll('.video-wrapper');
+      let closestWrapper = null;
+      let minDistance = Infinity;
+      wrappers.forEach(wrapper => {
+        const rect = wrapper.getBoundingClientRect();
+        const distance = Math.abs(rect.top - (container.classList.contains('full-height') ? 0 : 60));
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestWrapper = wrapper;
+        }
+      });
+      if (closestWrapper) {
+        const newIndex = parseInt(closestWrapper.dataset.index);
+        if (newIndex !== currentIndex) {
+          const prevWrapper = wrappers[currentIndex];
+          if (prevWrapper && isLoaded(prevWrapper)) {
+            const id = prevWrapper.dataset.id;
+            unloadVideo(prevWrapper);
+            if (!playedSet.has(id)) {
+              playedSet.add(id);
+              if (playedSet.size > 0 && playedSet.size % 3 === 0) {
+                currentIndex = newIndex;
+                const adTriggerCount = playedSet.size / 3;
+                // No external ad array defined in snippet provided, skipping complex logic
+                // showAd(adIndexToShow); 
+                return;
+              }
+            }
+          }
+          currentIndex = newIndex;
+          if (hasStarted && !adShowing && !isLoaded(closestWrapper)) {
+            loadVideo(closestWrapper);
+          }
+        }
+      }
+    }
+
+    function isLoaded(wrapper) {
+      return !!wrapper.querySelector('video.video-player');
+    }
+
+    function loadVideo(wrapper) {
+      const url = wrapper.dataset.url;
+      if (!url) return;
+      
+      const loader = wrapper.querySelector('.video-loader');
+      const loaderText = wrapper.querySelector('.loader-text'); // Get Text Element
+      const placeholder = wrapper.querySelector('.video-placeholder');
+      
+      // Toggle Loader AND Text
+      if (loader) loader.style.display = 'block';
+      if (loaderText) loaderText.style.display = 'block';
+
+      if (placeholder) placeholder.remove();
+      
+      const videoEl = document.createElement('video');
+      videoEl.src = url;
+      videoEl.className = 'video-player';
+      videoEl.autoplay = true;
+      videoEl.muted = isGloballyMuted;
+      videoEl.loop = true;
+      videoEl.playsInline = true;
+
+      videoEl.addEventListener('waiting', () => {
+        if (loader) loader.style.display = 'block';
+        if (loaderText) loaderText.style.display = 'block'; // Show text on buffer
+      });
+
+      videoEl.addEventListener('playing', () => {
+        if (loader) loader.style.display = 'none';
+        if (loaderText) loaderText.style.display = 'none'; // Hide text on play
+      });
+
+      // STREAK: 30% detection
+      let counted = false;
+      const checkThirty = () => {
+        if (!counted && videoEl.duration && videoEl.currentTime >= videoEl.duration * THIRTY_PERCENT) {
+          counted = true;
+          incrementStreak();
+        }
+      };
+      videoEl.addEventListener('timeupdate', checkThirty);
+      videoEl.addEventListener('ended', () => {
+        if (!counted) incrementStreak();
+      });
+
+      wrapper.insertBefore(videoEl, wrapper.querySelector('.video-info'));
+      const unmuteBtn = wrapper.querySelector('.unmute-btn');
+      if (unmuteBtn) {
+        unmuteBtn.textContent = isGloballyMuted ? '🔇' : '🔊';
+      }
+      
+      videoEl.play().catch(error => {
+        console.error("Video playback failed:", error);
+        // If error, hide loader so it doesn't spin forever
+        if (loader) loader.style.display = 'none';
+        if (loaderText) loaderText.style.display = 'none';
+      });
+    }
+
+    function unloadVideo(wrapper) {
+      const videoEl = wrapper.querySelector('video.video-player');
+      if (videoEl) {
+        videoEl.pause();
+        videoEl.removeAttribute('src');
+        videoEl.load();
+        videoEl.remove();
+      }
+      if (!wrapper.querySelector('.video-placeholder')) {
+        const video = orderedVideos.find(v => v.id === wrapper.dataset.id);
+        const placeholder = document.createElement('div');
+        placeholder.className = 'video-placeholder';
+        const placeholderContent = isHeaderPermanentlyHidden
+          ? `<video src="${video.url}" poster="${video.url}" preload="metadata" muted></video>
+                      <div class="title-overlay">${video.title}</div>
+                      <div class="tap-to-play">Explicit content(18+) Tap to play</div>`
+          : `<div class="title-overlay">${video.title}</div>
+                      <div class="tap-to-play">Explicit content(18+) Tap to play</div>`;
+        placeholder.innerHTML = placeholderContent;
+        
+        // Insert before video-info to maintain z-index stack
+        const infoDiv = wrapper.querySelector('.video-info');
+        wrapper.insertBefore(placeholder, infoDiv);
+      }
+    }
+
+    function pauseAllVideos() {
+      document.querySelectorAll('video.video-player').forEach(videoEl => {
+        videoEl.pause();
+      });
+    }
+
+    function showAd(adIndex) {
+      pauseAllVideos();
+      adShowing = true;
+      // ... existing ad logic ...
+    }
+
+    function hideAd() {
+      clearInterval(adCountdownInterval);
+      adShowing = false;
+      const adModal = document.getElementById('adModal');
+      adModal.style.display = 'none';
+      const header = document.getElementById('header');
+      if (isHeaderPermanentlyHidden) {
+        header.classList.add('hidden');
+      }
+      const wrappers = document.querySelectorAll('.video-wrapper');
+      const currentWrapper = wrappers[currentIndex];
+      if (currentWrapper && !isLoaded(currentWrapper)) {
+        loadVideo(currentWrapper);
+      }
+    }
+
+    renderVideos();
+  </script>
+</body>
+</html>
