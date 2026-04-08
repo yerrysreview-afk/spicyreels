@@ -1,13 +1,4 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <title>Spicy Reels</title>
-</head>
-<body>
-  <h1>🔥 Spicy Reels is LIVE 🔥</h1>
-</body>
-</html>
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -20,8 +11,7 @@
       box-sizing: border-box;
     }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-        Ubuntu, Cantarell, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       background: #000;
       color: white;
       overflow: hidden;
@@ -372,7 +362,7 @@
   <script>
     // ---------- VIDEO & AD DATA ----------
     let videos = [
-      { title: "1", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/bridgette_n2dvzg.mp4" },
+      { title: "1", desc: "", url: "https://rumble.com/embed/v761bfq/?pub=3ro075", type: "rumble" },
       { title: "2", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562608/alewx_hri3cd.mp4" },
       { title: "3", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/ava_adams_vpegsl.mp4" },
       { title: "4", desc: "", url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/avc_LANA_hq4mb6.mp4" },
@@ -587,8 +577,7 @@
     let isHeaderPermanentlyHidden = false;
 
     // Filter state: 'random' | 'asc' | 'desc'
-    let currentFilterMode = 'random'; 
-
+    let currentFilterMode = 'random';
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -604,7 +593,7 @@
     // --- Function to organize videos based on filter ---
     function organizeVideos() {
       // 1. Reset Arrays from source
-      numberedReels = videos.slice(0, 116).map(video => ({ ...video, type: "numbered" }));
+      numberedReels = videos.slice(0, 116).map(video => ({ ...video, type: video.type || "numbered" }));
       onlyFansReels = videos.slice(116).map(video => ({ ...video, type: "onlyfans" }));
       
       // 2. Apply Sort to numbered reels
@@ -659,9 +648,9 @@
       container.innerHTML = "";
       
       // Determine Filter Icon based on current mode
-      let filterIcon = '🔀'; // Default Random
-      if (currentFilterMode === 'asc') filterIcon = '🔼';
-      if (currentFilterMode === 'desc') filterIcon = '🔽';
+      let filterIcon = '🔀';
+      if (currentFilterMode === 'asc') filterIcon = '⬇️';
+      if (currentFilterMode === 'desc') filterIcon = '⬆️';
 
       orderedVideos.forEach((video, index) => {
         const wrapper = document.createElement("div");
@@ -670,31 +659,23 @@
         wrapper.dataset.index = index;
         wrapper.dataset.url = video.url;
         
-      const placeholderContent = isHeaderPermanentlyHidden
-  ? `<video src="${video.url}" poster="${video.url}" preload="metadata" muted></video>
-     
-     <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 5rem; color: rgba(255,255,255,0.9); pointer-events: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));">
-        ▶️
-     </div>
+        let backgroundVideoHtml = '';
+        if (video.type !== 'rumble' && isHeaderPermanentlyHidden) {
+            backgroundVideoHtml = `<video src="${video.url}" poster="${video.url}" preload="metadata" muted></video>`;
+        }
 
-     <div class="title-overlay">${video.title}</div>
-     <div class="tap-to-play" style="line-height: 2;">
-       🔞(18+) 
-       <style>@keyframes popDonate { 0% { transform: scale(1); } 100% { transform: scale(1.1); box-shadow: 0 0 12px #ff006e; } }</style>
-       <a href="https://www.paypal.com/ncp/payment/GY5F5A2B47VS8" target="_blank" onclick="event.stopPropagation()" style="display: inline-block; background: linear-gradient(45deg, #ff006e, #8b00ff); color: white; padding: 4px 10px; border-radius: 8px; text-decoration: none; font-weight: 900; border: 1px solid rgba(255,255,255,0.8); animation: popDonate 0.8s infinite alternate; margin: 0 5px;">DONATE</a> 
-       to keep the site running
-     </div>` : `
-     <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 5rem; color: rgba(255,255,255,0.9); pointer-events: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));">
-        ▶️
-     </div>
-
-     <div class="title-overlay">${video.title}</div>
-     <div class="tap-to-play" style="line-height: 2;">
-       🔞(18+) 
-       <style>@keyframes popDonate { 0% { transform: scale(1); } 100% { transform: scale(1.1); box-shadow: 0 0 12px #ff006e; } }</style>
-       <a href="https://www.paypal.com/ncp/payment/GY5F5A2B47VS8" target="_blank" onclick="event.stopPropagation()" style="display: inline-block; background: linear-gradient(45deg, #ff006e, #8b00ff); color: white; padding: 4px 10px; border-radius: 8px; text-decoration: none; font-weight: 900; border: 1px solid rgba(255,255,255,0.8); animation: popDonate 0.8s infinite alternate; margin: 0 5px;">DONATE</a> 
-       to keep the site running
-     </div>`;
+        const placeholderContent = `
+         ${backgroundVideoHtml}
+         <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 5rem; color: rgba(255,255,255,0.9); pointer-events: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));">
+            ▶️
+         </div>
+         <div class="title-overlay">${video.title}</div>
+         <div class="tap-to-play" style="line-height: 2;">
+           🔥(18+) 
+           <style>@keyframes popDonate { 0% { transform: scale(1); } 100% { transform: scale(1.1); box-shadow: 0 0 12px #ff006e; } }</style>
+           <a href="https://www.paypal.com/ncp/payment/GY5F5A2B47VS8" target="_blank" onclick="event.stopPropagation()" style="display: inline-block; background: linear-gradient(45deg, #ff006e, #8b00ff); color: white; padding: 4px 10px; border-radius: 8px; text-decoration: none; font-weight: 900; border: 1px solid rgba(255,255,255,0.8); animation: popDonate 0.8s infinite alternate; margin: 0 5px;">DONATE</a> 
+           to keep the site running
+         </div>`;
      
         // --- ADDED: Loader text and Filter Button HTML ---
         wrapper.innerHTML = `
@@ -709,7 +690,7 @@
             <div class="video-title">${video.title}</div>
             <div class="video-description">${video.desc}</div>
           </div>
-          ${index === 0 ? '<div class="scroll-indicator">👇 Scroll for more </div>' : ''}
+          ${index === 0 ? '<div class="scroll-indicator">⬇️ Scroll for more </div>' : ''}
           <div class="streak-counter"><span class="fire">🔥</span><span class="count">${streak}</span></div>
         `;
         container.appendChild(wrapper);
@@ -735,7 +716,7 @@
               videoContainer.classList.add('full-height');
               document.querySelectorAll('.video-wrapper').forEach(w => w.classList.add('full-height'));
               isHeaderPermanentlyHidden = true;
-              renderVideos(); // Re-render to update layout, video stays loaded via logic
+              renderVideos();
             }
           }
         });
@@ -746,6 +727,8 @@
           e.stopPropagation();
           isGloballyMuted = !isGloballyMuted;
           const currentWrapper = btn.closest('.video-wrapper');
+          
+          // Apply to video if it's an MP4
           const currentVideoEl = currentWrapper.querySelector('video.video-player');
           if (currentVideoEl) {
             currentVideoEl.muted = isGloballyMuted;
@@ -806,6 +789,7 @@
           closestWrapper = wrapper;
         }
       });
+
       if (closestWrapper) {
         const newIndex = parseInt(closestWrapper.dataset.index);
         if (newIndex !== currentIndex) {
@@ -818,8 +802,7 @@
               if (playedSet.size > 0 && playedSet.size % 3 === 0) {
                 currentIndex = newIndex;
                 const adTriggerCount = playedSet.size / 3;
-                // No external ad array defined in snippet provided, skipping complex logic
-                // showAd(adIndexToShow); 
+                // showAd(adIndexToShow);
                 return;
               }
             }
@@ -833,23 +816,47 @@
     }
 
     function isLoaded(wrapper) {
-      return !!wrapper.querySelector('video.video-player');
+      return !!wrapper.querySelector('video.video-player') || !!wrapper.querySelector('iframe.video-player');
     }
 
     function loadVideo(wrapper) {
       const url = wrapper.dataset.url;
       if (!url) return;
-      
       const loader = wrapper.querySelector('.video-loader');
-      const loaderText = wrapper.querySelector('.loader-text'); // Get Text Element
+      const loaderText = wrapper.querySelector('.loader-text');
       const placeholder = wrapper.querySelector('.video-placeholder');
-      
-      // Toggle Loader AND Text
+
       if (loader) loader.style.display = 'block';
       if (loaderText) loaderText.style.display = 'block';
-
       if (placeholder) placeholder.remove();
       
+      // Look up the current video's data to check its type
+      const videoData = orderedVideos.find(v => v.id === wrapper.dataset.id);
+
+      // --- NEW: RUMBLE IFRAME LOGIC ---
+      if (videoData && videoData.type === 'rumble') {
+        const iframeEl = document.createElement('iframe');
+        // Add autoplay variables for Rumble
+        const separator = url.includes('?') ? '&' : '?';
+        iframeEl.src = url + separator + 'autoplay=2'; 
+        iframeEl.className = 'video-player';
+        iframeEl.setAttribute('frameborder', '0');
+        iframeEl.setAttribute('allowfullscreen', 'true');
+        iframeEl.setAttribute('allow', 'autoplay; fullscreen');
+        
+        iframeEl.style.pointerEvents = 'auto'; 
+
+        wrapper.insertBefore(iframeEl, wrapper.querySelector('.video-info'));
+
+        if (loader) loader.style.display = 'none';
+        if (loaderText) loaderText.style.display = 'none';
+
+        // Fake the streak timer for iframes since we can't track exact time inside an iframe
+        setTimeout(() => incrementStreak(), 5000); 
+        return;
+      }
+
+      // --- EXISTING MP4 LOGIC ---
       const videoEl = document.createElement('video');
       videoEl.src = url;
       videoEl.className = 'video-player';
@@ -860,15 +867,13 @@
 
       videoEl.addEventListener('waiting', () => {
         if (loader) loader.style.display = 'block';
-        if (loaderText) loaderText.style.display = 'block'; // Show text on buffer
+        if (loaderText) loaderText.style.display = 'block';
       });
-
       videoEl.addEventListener('playing', () => {
         if (loader) loader.style.display = 'none';
-        if (loaderText) loaderText.style.display = 'none'; // Hide text on play
+        if (loaderText) loaderText.style.display = 'none';
       });
 
-      // STREAK: 30% detection
       let counted = false;
       const checkThirty = () => {
         if (!counted && videoEl.duration && videoEl.currentTime >= videoEl.duration * THIRTY_PERCENT) {
@@ -882,6 +887,7 @@
       });
 
       wrapper.insertBefore(videoEl, wrapper.querySelector('.video-info'));
+      
       const unmuteBtn = wrapper.querySelector('.unmute-btn');
       if (unmuteBtn) {
         unmuteBtn.textContent = isGloballyMuted ? '🔇' : '🔊';
@@ -889,33 +895,40 @@
       
       videoEl.play().catch(error => {
         console.error("Video playback failed:", error);
-        // If error, hide loader so it doesn't spin forever
         if (loader) loader.style.display = 'none';
         if (loaderText) loaderText.style.display = 'none';
       });
     }
 
     function unloadVideo(wrapper) {
-      const videoEl = wrapper.querySelector('video.video-player');
-      if (videoEl) {
-        videoEl.pause();
-        videoEl.removeAttribute('src');
-        videoEl.load();
-        videoEl.remove();
+      // Look for either a video or an iframe
+      const playerEl = wrapper.querySelector('video.video-player') || wrapper.querySelector('iframe.video-player');
+      
+      if (playerEl) {
+        if (playerEl.tagName === 'VIDEO') {
+          playerEl.pause();
+          playerEl.removeAttribute('src');
+          playerEl.load();
+        }
+        playerEl.remove();
       }
+      
       if (!wrapper.querySelector('.video-placeholder')) {
         const video = orderedVideos.find(v => v.id === wrapper.dataset.id);
         const placeholder = document.createElement('div');
         placeholder.className = 'video-placeholder';
-        const placeholderContent = isHeaderPermanentlyHidden
-          ? `<video src="${video.url}" poster="${video.url}" preload="metadata" muted></video>
-                      <div class="title-overlay">${video.title}</div>
-                      <div class="tap-to-play">Explicit content(18+) Tap to play</div>`
-          : `<div class="title-overlay">${video.title}</div>
-                      <div class="tap-to-play">Explicit content(18+) Tap to play</div>`;
-        placeholder.innerHTML = placeholderContent;
         
-        // Insert before video-info to maintain z-index stack
+        let backgroundVideoHtml = '';
+        if (video.type !== 'rumble' && isHeaderPermanentlyHidden) {
+            backgroundVideoHtml = `<video src="${video.url}" poster="${video.url}" preload="metadata" muted></video>`;
+        }
+
+        const placeholderContent = `
+          ${backgroundVideoHtml}
+          <div class="title-overlay">${video.title}</div>
+          <div class="tap-to-play">Explicit content(18+) Tap to play</div>`;
+          
+        placeholder.innerHTML = placeholderContent;
         const infoDiv = wrapper.querySelector('.video-info');
         wrapper.insertBefore(placeholder, infoDiv);
       }
@@ -930,7 +943,6 @@
     function showAd(adIndex) {
       pauseAllVideos();
       adShowing = true;
-      // ... existing ad logic ...
     }
 
     function hideAd() {
