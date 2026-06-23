@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SpicyReels</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
   <style>
     * {
       margin: 0;
@@ -30,12 +31,10 @@
       justify-content: center;
       z-index: 1000;
       box-shadow: 0 4px 12px rgba(255, 0, 110, 0.3);
-      transition: all 0.3s ease;
+      transition: display 0.3s ease;
     }
     .header.hidden {
-      transform: translateY(-100%);
-      opacity: 0;
-      pointer-events: none;
+      display: none;
     }
     .logo-container {
       display: flex;
@@ -73,7 +72,6 @@
       scroll-snap-type: y mandatory;
       scroll-behavior: smooth;
       -webkit-overflow-scrolling: touch;
-      transition: top 0.3s ease;
     }
     .video-container.full-height {
       top: 0;
@@ -92,9 +90,8 @@
       align-items: center;
       justify-content: center;
       background: #000;
-      transition: height 0.3s ease;
     }
-    .video-container.full-height .video-wrapper {
+    .video-wrapper.full-height {
       height: 100vh;
     }
     .video-player {
@@ -242,6 +239,51 @@
       0%, 100% { transform: translateX(-50%) translateY(0); }
       50% { transform: translateX(-50%) translateY(-10px); }
     }
+    .ad-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.95);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    .ad-content {
+      background: linear-gradient(135deg, #1a0033, #330033);
+      padding: 20px;
+      border-radius: 20px;
+      color: #ff6ec7;
+      font-size: 20px;
+      text-align: center;
+      border: 3px solid #ff006e;
+      box-shadow: 0 0 30px rgba(255, 0, 110, 0.5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 95%;
+      max-width: 450px;
+    }
+    .ad-image-link {
+      display: block;
+      margin-bottom: 15px;
+      border-radius: 15px;
+      overflow: hidden;
+      border: 2px solid #ff006e;
+    }
+    .ad-image {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .ad-timer {
+      font-size: 40px;
+      font-weight: 900;
+      color: #fff;
+      margin: 10px 0;
+    }
     .streak-counter {
       position: absolute;
       right: 15px;
@@ -276,6 +318,16 @@
     </div>
   </div>
   <div class="video-container" id="videoContainer"></div>
+  <div class="ad-modal" id="adModal">
+    <div class="ad-content">
+      <div>click here</div>
+      <a href="" target="_blank" class="ad-image-link" id="adLink">
+        <img src="" alt="Model Ad" class="ad-image" id="adImage">
+      </a>
+      <div class="ad-timer" id="adTimer">10</div>
+      <div>seconds remaining</div>
+    </div>
+  </div>
   
   <div class="streak-counter" id="streakCounter" style="display: none;">
     <span class="fire">🌶️</span>
@@ -283,26 +335,14 @@
   </div>
 
   <script>
-    // ---------- RESTRUCTURED VIDEO DATA (3 EMBEDS : 1 AD) ----------
+    // ---------- VIDEO & AD DATA ----------
     let videos = [
-      // Block 1
-      { 
-        title: "1", 
-        desc: "", 
-        url: "https://odysee.com/$/embed/avc_abgj3/e?r=wTLycAwLr9goAj7kW3NMErn5VCgowZye", 
-        type: "embed" 
-      },
-      { 
-        title: "2", 
-        desc: "", 
-        url: "https://odysee.com/$/embed/avc_BT65T:3?r=wTLycAwLr9goAj7kW3NMErn5VCgowZye", 
-        type: "embed" 
-      },
-      { 
-        title: "3", 
-        desc: "", 
-        url: "https://odysee.com/$/embed/avc_BRV5V:e?r=wTLycAwLr9goAj7kW3NMErn5VCgowZye", 
-        type: "embed" 
+      {
+        title: "New Reel",
+        desc: "Trending",
+        url: "https://v.redd.it/4u2fyjf3rz8h1/CMAF_480.mp4",
+        audioUrl: "https://v.redd.it/4u2fyjf3rz8h1/CMAF_AUDIO_64.m3u8",
+        type: "video"
       },
       {
         title: "<a href='https://onlyfans.com/josephine_blush' target='_blank' rel='noopener noreferrer'>onlyfans.com/josephine_blush</a>",
@@ -310,51 +350,11 @@
         url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/onlyjosephine_tnnmsq.mp4",
         type: "onlyfans"
       },
-
-      // Block 2
-      { 
-        title: "4", 
-        desc: "", 
-        url: "https://odysee.com/$/embed/avc_BUSYW4W:e?r=wTLycAwLr9goAj7kW3NMErn5VCgowZye", 
-        type: "embed" 
-      },
-      { 
-        title: "5", 
-        desc: "", 
-        url: "https://odysee.com/$/embed/avc_ICKHHJ:e?r=wTLycAwLr9goAj7kW3NMErn5VCgowZye", 
-        type: "embed" 
-      },
-      { 
-        title: "6", 
-        desc: "", 
-        url: "https://odysee.com/$/embed/avc_JAYA5R:d?r=wTLycAwLr9goAj7kW3NMErn5VCgowZye", 
-        type: "embed" 
-      },
       {
         title: "<a href='https://onlyfans.com/fitandannika' target='_blank' rel='noopener noreferrer'>onlyfans.com/fitandannika</a>",
         desc: "This is only a teaser. Check me out",
         url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/onlyfit_ovktp4.mp4",
         type: "onlyfans"
-      },
-
-      // Block 3
-      { 
-        title: "7", 
-        desc: "", 
-        url: "https://odysee.com/$/embed/avc_JAYIS3R:8", 
-        type: "embed" 
-      },
-      { 
-        title: "8", 
-        desc: "", 
-        url: "https://odysee.com/$/embed/avc_JAYY6Y:2?view=shorts", 
-        type: "embed" 
-      },
-      { 
-        title: "9", 
-        desc: "", 
-        url: "https://odysee.com/$/embed/avc_KINGWHT:f", 
-        type: "embed" 
       },
       {
         title: "<a href='https://onlyfans.com/evie_rouges' target='_blank' rel='noopener noreferrer'>onlyfans.com/evie_rouges</a>",
@@ -362,51 +362,11 @@
         url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/onlyevie_rmguao.mp4",
         type: "onlyfans"
       },
-
-      // Block 4
-      { 
-        title: "10", 
-        desc: "", 
-        url: "https://odysee.com/$/embed/avc_KINGY-NK:4", 
-        type: "embed" 
-      },
-      { 
-        title: "11", 
-        desc: "", 
-        url: "https://odysee.com/$/embed/avc_KYL54FJ:8", 
-        type: "embed" 
-      },
-      { 
-        title: "12", 
-        desc: "", 
-        url: "https://odysee.com/$/embed/avc_NT5LIB:b", 
-        type: "embed" 
-      },
       {
         title: "<style>@keyframes heartbeat { 0% { transform: scale(1); } 15% { transform: scale(1.1); } 30% { transform: scale(1); } 45% { transform: scale(1.1); } 100% { transform: scale(1); } }</style><div style='display: flex; justify-content: center; width: 100%;'><a href='https://landing.hentaiprosnetwork.com/?ats=eyJhIjoxMjkxOTQyLCJjIjo2MzcyOTYxMSwibiI6MjUsInMiOjUzNywiZSI6ODk5NCwicCI6MTF9' target='_blank' rel='noopener noreferrer' style='display: inline-block; animation: heartbeat 2s infinite; color: #8b0000; font-size: 30px; text-decoration: none; background-color: #ffc0cb; padding: 10px 20px; border-radius: 8px;'>SEE MORE</a></div>",
         desc: "",
         url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/1208_unzonc.mp4",
         type: "onlyfans"
-      },
-
-      // Block 5
-      { 
-        title: "13", 
-        desc: "", 
-        url: "https://odysee.com/$/embed/avc_STEPH434JN:0", 
-        type: "embed" 
-      },
-      { 
-        title: "14", 
-        desc: "", 
-        url: "https://odysee.com/$/embed/avc_ASSINN:0", 
-        type: "embed" 
-      },
-      { 
-        title: "15", 
-        desc: "", 
-        url: "https://odysee.com/$/embed/avc_BRZLJI:e", 
-        type: "embed" 
       },
       {
         title: "<style>@keyframes heartbeat { 0% { transform: scale(1); } 15% { transform: scale(1.1); } 30% { transform: scale(1); } 45% { transform: scale(1.1); } 100% { transform: scale(1); } }</style><div style='display: flex; justify-content: center; width: 100%;'><a href='https://landing.brazzersnetwork.com/?ats=eyJhIjoxMjkxOTQyLCJjIjo2MzcyOTYxMSwibiI6MTQsInMiOjkwLCJlIjo4ODAzLCJwIjoxMX0=' target='_blank' rel='noopener noreferrer' style='display: inline-block; animation: heartbeat 2s infinite; color: #8b0000; font-size: 30px; text-decoration: none; background-color: #ffc0cb; padding: 10px 20px; border-radius: 8px;'>SEE MORE</a></div>",
@@ -414,8 +374,6 @@
         url: "https://res.cloudinary.com/dxdhppkto/video/upload/v1760562606/brazzers_link_tlsryp.mp4",
         type: "onlyfans"
       },
-
-      // Remaining promotional feeds
       {
         title: "<style>@keyframes heartbeat { 0% { transform: scale(1); } 15% { transform: scale(1.1); } 30% { transform: scale(1); } 45% { transform: scale(1.1); } 100% { transform: scale(1); } }</style><div style='display: flex; justify-content: center; width: 100%;'><a href='https://t.ajrkm1.com/393047/6224/0?bo=2779,2778,2777,2776,2775&po=6533&aff_sub5=SF_006OG000004lmDN' target='_blank' rel='noopener noreferrer' style='display: inline-block; animation: heartbeat 2s infinite; color: #8b0000; font-size: 30px; text-decoration: none; background-color: #ffc0cb; padding: 10px 20px; border-radius: 8px;'>SEE MORE</a></div>",
         desc: "",
@@ -470,6 +428,9 @@
       
       if (activePlayers[currentActiveIndex] && typeof activePlayers[currentActiveIndex].pause === 'function') {
         activePlayers[currentActiveIndex].pause();
+        if (activePlayers[currentActiveIndex].linkedAudio) {
+          activePlayers[currentActiveIndex].linkedAudio.pause();
+        }
       }
       
       for (let key in activePlayers) {
@@ -575,10 +536,6 @@
     }
 
     function toggleVideoPlayback(wrapper, video, index) {
-      // Hide heading & make video view take full screen
-      document.getElementById('header').classList.add('hidden');
-      document.getElementById('videoContainer').classList.add('full-height');
-
       let placeholder = wrapper.querySelector('.video-placeholder');
       let loader = wrapper.querySelector('.video-loader');
       let loaderText = wrapper.querySelector('.loader-text');
@@ -605,6 +562,7 @@
             setTimeout(() => {
               if (index === currentActiveIndex) {
                 incrementStreak();
+                if (streak % 4 === 0) fireInterstitialAd();
               }
             }, 6000);
           });
@@ -616,6 +574,58 @@
           mediaEl.muted = isMuted;
           mediaEl.playsInline = true;
           mediaEl.setAttribute('webkit-playsinline', 'true');
+
+          // Audio separation setup using Hls.js
+          if (video.audioUrl) {
+            let audioEl = document.createElement('audio');
+            audioEl.loop = true;
+            audioEl.muted = isMuted;
+
+            if (Hls.isSupported()) {
+              const hls = new Hls({ autoStartLoad: true });
+              hls.loadSource(video.audioUrl);
+              hls.attachMedia(audioEl);
+            } else if (audioEl.canPlayType('application/vnd.apple.mpegurl')) {
+              audioEl.src = video.audioUrl;
+            }
+
+            mediaEl.linkedAudio = audioEl;
+
+            // Tight synchronization: audio waits for the video state
+            mediaEl.addEventListener('playing', () => {
+              audioEl.currentTime = mediaEl.currentTime;
+              if (!isMuted) audioEl.muted = false;
+              audioEl.play().catch(err => console.warn("Audio catch up blocked:", err));
+            });
+
+            mediaEl.addEventListener('waiting', () => {
+              audioEl.pause(); // Video stalled/buffering: stop audio and wait
+            });
+
+            mediaEl.addEventListener('pause', () => {
+              audioEl.pause();
+            });
+
+            mediaEl.addEventListener('seeking', () => {
+              audioEl.pause(); // Video scrubbing/seeking: stop audio instantly
+            });
+
+            mediaEl.addEventListener('seeked', () => {
+              audioEl.currentTime = mediaEl.currentTime;
+              if (!mediaEl.paused) {
+                audioEl.play().catch(() => {});
+              }
+            });
+
+            // Prevent drift over prolonged viewing
+            mediaEl.addEventListener('timeupdate', () => {
+              if (!mediaEl.paused && !mediaEl.seeking) {
+                if (Math.abs(audioEl.currentTime - mediaEl.currentTime) > 0.15) {
+                  audioEl.currentTime = mediaEl.currentTime;
+                }
+              }
+            });
+          }
 
           wrapper.insertBefore(mediaEl, wrapper.firstChild);
           activePlayers[index] = mediaEl;
@@ -634,6 +644,9 @@
               if (mediaEl.currentTime / mediaEl.duration >= THIRTY_PERCENT) {
                 milestoneMet = true;
                 incrementStreak();
+                if (streak % 4 === 0) {
+                  fireInterstitialAd();
+                }
               }
             }
           });
@@ -649,12 +662,48 @@
       }
     }
 
+    function fireInterstitialAd() {
+      if (activePlayers[currentActiveIndex] && typeof activePlayers[currentActiveIndex].pause === 'function') {
+        activePlayers[currentActiveIndex].pause();
+        if (activePlayers[currentActiveIndex].linkedAudio) {
+          activePlayers[currentActiveIndex].linkedAudio.pause();
+        }
+      }
+
+      const modal = document.getElementById('adModal');
+      const countdownTimer = document.getElementById('adTimer');
+      const imageTarget = document.getElementById('adImage');
+      const linkTarget = document.getElementById('adLink');
+
+      imageTarget.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&q=80"; 
+      linkTarget.href = "https://onlyfans.com";
+      modal.style.display = 'flex';
+
+      let count = 5; 
+      countdownTimer.textContent = count;
+
+      const adInterval = setInterval(() => {
+        count--;
+        countdownTimer.textContent = count;
+        if (count <= 0) {
+          clearInterval(adInterval);
+          modal.style.display = 'none';
+          if (activePlayers[currentActiveIndex] && typeof activePlayers[currentActiveIndex].play === 'function') {
+            activePlayers[currentActiveIndex].play().catch(() => {});
+          }
+        }
+      }, 1000);
+    }
+
     document.addEventListener('click', (e) => {
       if (e.target.closest('.unmute-btn')) {
         isMuted = !isMuted;
         Object.keys(activePlayers).forEach(idx => {
           if (videos[idx].type !== 'embed' && activePlayers[idx]) {
             activePlayers[idx].muted = isMuted;
+            if (activePlayers[idx].linkedAudio) {
+              activePlayers[idx].linkedAudio.muted = isMuted;
+            }
           }
         });
         document.querySelectorAll('.unmute-btn').forEach(btn => {
@@ -664,14 +713,15 @@
     });
 
     container.addEventListener('scroll', () => {
-      // Handle page metrics mapping appropriately based on state
-      const isHeaderHidden = document.getElementById('header').classList.contains('hidden');
-      const wrapperSnapUnit = isHeaderHidden ? window.innerHeight : window.innerHeight - 60;
+      const wrapperSnapUnit = window.innerHeight - 60;
       const targetIndex = Math.round(container.scrollTop / wrapperSnapUnit);
 
       if (targetIndex !== currentActiveIndex && targetIndex < videos.length) {
         if (activePlayers[currentActiveIndex] && typeof activePlayers[currentActiveIndex].pause === 'function') {
           activePlayers[currentActiveIndex].pause();
+          if (activePlayers[currentActiveIndex].linkedAudio) {
+            activePlayers[currentActiveIndex].linkedAudio.pause();
+          }
         }
 
         currentActiveIndex = targetIndex;
@@ -683,7 +733,6 @@
       }
     });
 
-    // Execute application stack
     initFeed();
   </script>
 </body>
